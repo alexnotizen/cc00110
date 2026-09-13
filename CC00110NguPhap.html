@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BÀI 10 – NGỮ PHÁP - Flashcard</title>
+<style>
+*{box-sizing:border-box}
+body{
+  margin:0; min-height:100vh; font-family:Arial,"Microsoft YaHei",sans-serif;
+  background:#fdfbf7;
+  display:flex; justify-content:center; color:#202124;
+}
+.app{width:min(860px,96vw); padding:30px 0 40px}
+h1{text-align:center;margin:0 0 15px;font-size:32px; font-weight: bold;}
+.progress{text-align:center;font-size:18px;color:#444;margin-bottom:20px; font-weight: bold;}
+.card-wrap{perspective:1200px; cursor:pointer}
+.card{
+  width:100%; height:740px; position:relative; transform-style:preserve-3d;
+  transition:transform .55s ease;
+}
+.card.flipped{transform:rotateY(180deg)}
+.face{
+  position:absolute; inset:0; backface-visibility:hidden; -webkit-backface-visibility:hidden;
+  border-radius:24px; background:white; box-shadow:0 15px 45px rgba(0,0,0,.15);
+  display:flex; flex-direction:column; padding:36px; border:3px solid #eee; overflow-y:auto;
+}
+.front{justify-content:center; align-items:center; text-align:center}
+.back{transform:rotateY(180deg); text-align:left; align-items:flex-start; justify-content:flex-start; padding-top:40px;}
+
+.hl{color: #7c2d12; font-weight: bold; background-color: #fef08a; padding: 2px 6px; border-radius: 4px; border: 1px solid #eab308;}
+.hl-blue { color: #ffffff; font-weight: bold; background-color: #2563eb; padding: 2px 6px; border-radius: 4px; }
+.hl-red { color: #dc2626; font-weight: bold; }
+.pinyin{font-size: 1.55em; color: #555; margin-bottom: 12px; font-weight: 500;}
+
+.zh-front { font-size: 2em; font-weight: bold; margin-bottom: 8px; line-height: 1.3; color: #dc2626; text-align: center; }
+
+/* Mặt sau */
+.zh-back { color: #2563eb; font-weight: bold; font-size: 1.65em; line-height: 1.2; display: inline-block; margin-top: 10px; margin-bottom: 2px; }
+.pinyin-back { color: #666666; font-weight: bold; font-size: 1.05em; display: block; margin: 2px 0; }
+.vi-back { font-size: 1.05em; color: #333; display: block; margin-bottom: 14px; }
+
+.desc-front { font-size: 1.55em; color: #333; margin: 12px 0; text-align: left; width: 100%; line-height: 1.45; }
+.desc{font-size: 1.35em; color: #333; margin: 0; text-align: left; width: 100%; line-height: 1.45;}
+
+.controls{display:flex;gap:20px;justify-content:center;margin-top:30px}
+button{
+  border:0;border-radius:20px;padding:20px 35px;font-size:22px;
+  cursor:pointer;background:#e9eef7;color:#233044; font-weight: bold; box-shadow: 0 4px 6px rgba(0,0,0,.1);
+}
+button.primary{background:#2563eb;color:white}
+</style>
+</head>
+<body>
+<div class="app">
+  <h1 id="title">BÀI 10 – NGỮ PHÁP</h1>
+  <div class="progress" id="progress"></div>
+  <div class="card-wrap" id="cardWrap" onclick="flipCard()">
+    <div class="card" id="card">
+      <div class="face front" id="frontFace"></div>
+      <div class="face back" id="backFace"></div>
+    </div>
+  </div>
+  <div class="controls">
+    <button onclick="event.stopPropagation();prevCard()">← TRƯỚC</button>
+    <button class="primary" onclick="event.stopPropagation();flipCard()">LẬT THẺ</button>
+    <button onclick="event.stopPropagation();nextCard()">TIẾP →</button>
+  </div>
+</div>
+<script>
+const cards = [
+  {
+    f: "<div class='zh-front'>BẠN UỐNG THỬ XEM</div><div class='zh-front'>你喝喝<span class='hl-blue'>看</span></div><div class='pinyin'>nǐ hē hē kàn</div><div class='desc-front'>• Mẫu câu: <b>Động từ + Lặp lại động từ</b> + <span class='hl-red'>看</span><br>• Sau động từ và <span class='hl-red'>看</span> không được kéo theo từ gì khác.<br>• Cách nói này dùng khi muốn tự thử làm hay bảo ai thử làm gì đó xem, tương tự một phần nghĩa của <b>Động từ + Lặp lại động từ</b>, nhưng ngược lại thì không phải lúc nào cũng đúng.<br>• Cụ thể: <span style='color:#2563eb;font-weight:bold;'>你喝喝看</span> = <span style='color:#2563eb;font-weight:bold;'>你喝喝</span> (Bạn uống thử xem). Nhưng <span style='color:#2563eb;font-weight:bold;'>我在家喝喝咖啡</span> (Tôi ở nhà uống cà phê một chút) thì không thể biến thành <span style='color:#2563eb;font-weight:bold;'>我在家喝喝咖啡看</span>.<br>• Các động từ một âm tiết có thể lặp lại: <span style='color:#2563eb;font-weight:bold;'>吃</span> (ăn), <span style='color:#2563eb;font-weight:bold;'>喝</span> (uống), <span style='color:#2563eb;font-weight:bold;'>打</span> (đánh), <span style='color:#2563eb;font-weight:bold;'>寫</span> (viết), <span style='color:#2563eb;font-weight:bold;'>穿</span> (mặc), <span style='color:#2563eb;font-weight:bold;'>學</span> (học), <span style='color:#2563eb;font-weight:bold;'>做</span> (làm), <span style='color:#2563eb;font-weight:bold;'>聽</span> (nghe), <span style='color:#2563eb;font-weight:bold;'>唱</span> (hát), <span style='color:#2563eb;font-weight:bold;'>逛</span> (dạo), <span style='color:#2563eb;font-weight:bold;'>住</span> (ở).</div>",
+    b: "<div class='desc' style='line-height:1.6;'>" +
+       "<span class='zh-back'>這杯咖啡很香，你喝喝看。</span><br><span class='pinyin-back'>Zhè bēi kāfēi hěn xiāng, nǐ hē he kàn.</span><span class='vi-back'>Ly cà phê này rất thơm, bạn uống thử xem.</span>" +
+       "<span class='zh-back'>聽說你唱歌唱得很好，我想聽聽看。</span><br><span class='pinyin-back'>Tīngshuō nǐ chàng gē chàng de hěn hǎo, wǒ xiǎng tīng ting kàn.</span><span class='vi-back'>Nghe nói bạn hát hay lắm, tôi muốn nghe thử xem.</span>" +
+       "<span class='zh-back'>那家餐廳的菜很好吃，我想去吃吃看。</span><br><span class='pinyin-back'>Nà jiā cāntīng de cài hěn hǎochī, wǒ xiǎng qù chī chi kàn.</span><span class='vi-back'>Món ăn ở nhà hàng đó ngon lắm, tôi muốn đến ăn thử xem.</span>" +
+       "<span class='zh-back'>臺灣的夜市很有名，這個週末我想去逛逛看。</span><br><span class='pinyin-back'>Táiwān de yèshì hěn yǒumíng, zhè gè zhōumò wǒ xiǎng qù guàng guàng kàn.</span><span class='vi-back'>Chợ đêm Đài Loan rất nổi tiếng, cuối tuần này tôi muốn đến dạo thử xem.</span>" +
+       "<span class='zh-back'>他做的牛肉湯很香，你喝喝看。</span><br><span class='pinyin-back'>Tā zuò de niúròutāng hěn xiāng, nǐ hē he kàn.</span><span class='vi-back'>Canh bò anh ấy nấu rất thơm, bạn uống thử xem.</span>" +
+       "<span class='zh-back'>我覺得這些音樂很不錯，請你聽聽看。</span><br><span class='pinyin-back'>Wǒ juéde zhèxiē yīnyuè hěn búcuò, qǐng nǐ tīng ting kàn.</span><span class='vi-back'>Tôi thấy mấy bản nhạc này khá hay, mời bạn nghe thử xem.</span>" +
+       "<span class='zh-back'>這個甜點很好吃，你要不要吃吃看？</span><br><span class='pinyin-back'>Zhè gè tiándiǎn hěn hǎochī, nǐ yào bú yào chī chi kàn?</span><span class='vi-back'>Món tráng miệng này ngon lắm, bạn có muốn ăn thử không?</span>" +
+       "<span class='zh-back'>書法很美，你想學學看嗎？</span><br><span class='pinyin-back'>Shūfǎ hěn měi, nǐ xiǎng xué xue kàn ma?</span><span class='vi-back'>Thư pháp đẹp lắm, bạn có muốn học thử không?</span>" +
+       "<span class='zh-back'>A：有空的時候，我可以去看看你們的書法課嗎？</span><br><span class='pinyin-back'>A: Yǒukòng de shíhòu, wǒ kěyǐ qù kàn kan nǐmen de shūfǎ kè ma?</span><span class='vi-back'>Khi nào rảnh, tôi có thể đến xem lớp thư pháp của các bạn không?</span>" +
+       "<span class='zh-back'>B：應該可以，可是我得問問看。</span><br><span class='pinyin-back'>B: Yīnggāi kěyǐ, kěshì wǒ děi wèn wèn kàn.</span><span class='vi-back'>Chắc là được, nhưng tôi phải hỏi thử xem đã.</span>" +
+       "</div>"
+  },
+  {
+    f: "<div class='zh-front'>BÁT CANH BÒ NÀY THƠM THƠM</div><div class='zh-front'>這碗牛肉湯<span class='hl-blue'>香香的</span></div><div class='pinyin'>zhè wǎn niúròutāng xiāngxiāng de</div><div class='desc-front'>• Mẫu câu: <b>Tính từ + Tính từ + 的</b><br>• Lặp lại tính từ là muốn nhấn mạnh, thể hiện cảm xúc, ấn tượng cá nhân, không phải là miêu tả khách quan, thực tế.<br>• Lưu ý:<br>- Khi đã lặp tính từ, KHÔNG được dùng thêm các từ chỉ mức độ như <span style='color:#2563eb;font-weight:bold;'>很</span>, <span style='color:#2563eb;font-weight:bold;'>太</span>, <span style='color:#2563eb;font-weight:bold;'>非常</span> trước tính từ. Không nói: <span style='color:#2563eb;font-weight:bold;'>這杯茶很香香的</span>.<br>- Sau tính từ lặp, luôn phải có <span style='color:#dc2626;font-weight:bold;'>的</span>. Không nói: <span style='color:#2563eb;font-weight:bold;'>這杯茶香香</span>.<br>- Khi có hai tính từ đi liền nhau, có thể bỏ chữ <span style='color:#dc2626;font-weight:bold;'>的</span> đầu tiên. Ví dụ: <span style='color:#2563eb;font-weight:bold;'>那種水果香香的甜甜的</span> có thể nói thành <span style='color:#2563eb;font-weight:bold;'>那種水果香香甜甜的</span>.<br>- Không phải tính từ nào cũng lặp được. Có thể lặp: <span style='color:#2563eb;font-weight:bold;'>香</span>, <span style='color:#2563eb;font-weight:bold;'>甜</span>, <span style='color:#2563eb;font-weight:bold;'>高</span>, <span style='color:#2563eb;font-weight:bold;'>熱</span>, <span style='color:#2563eb;font-weight:bold;'>大</span>, <span style='color:#2563eb;font-weight:bold;'>新</span>, <span style='color:#2563eb;font-weight:bold;'>美</span>, <span style='color:#2563eb;font-weight:bold;'>遠</span>, <span style='color:#2563eb;font-weight:bold;'>辣</span>, <span style='color:#2563eb;font-weight:bold;'>矮</span>. Không thể lặp: <span style='color:#2563eb;font-weight:bold;'>多</span>, <span style='color:#2563eb;font-weight:bold;'>貴</span>, <span style='color:#2563eb;font-weight:bold;'>近</span>, <span style='color:#2563eb;font-weight:bold;'>忙</span>, <span style='color:#2563eb;font-weight:bold;'>少</span>.<br>- Thường chỉ lặp tính từ khi khen hoặc chê. Ví dụ khi gọi cà phê nói: <span style='color:#2563eb;font-weight:bold;'>買一杯熱咖啡!</span> chứ không nói <span style='color:#2563eb;font-weight:bold;'>買一杯熱熱的咖啡!</span>.</div>",
+    b: "<div class='desc' style='line-height:1.6;'>" +
+       "<span class='zh-back'>這碗牛肉湯香香的。</span><br><span class='pinyin-back'>Zhè wǎn niúròutāng xiāngxiang de.</span><span class='vi-back'>Bát canh bò này thơm thơm.</span>" +
+       "<span class='zh-back'>熱熱的咖啡，真香。</span><br><span class='pinyin-back'>Rè rè de kāfēi, zhēn xiāng.</span><span class='vi-back'>Cà phê nóng hôi hổi, thơm thật đấy.</span>" +
+       "<span class='zh-back'>那個地方有很多高高的大樓。</span><br><span class='pinyin-back'>Nà gè dìfang yǒu hěn duō gāo gāo de dàlóu.</span><span class='vi-back'>Nơi đó có nhiều tòa nhà cao cao.</span>" +
+       "<span class='zh-back'>那個先生高高的。</span><br><span class='pinyin-back'>Nà gè xiānsheng gāogāo de.</span><span class='vi-back'>Người đàn ông đó cao cao.</span>" +
+       "<span class='zh-back'>甜甜的 (miêu tả trái cây, kẹo...)</span><br><span class='pinyin-back'>tián tián de</span><span class='vi-back'>ngọt ngọt</span>" +
+       "<span class='zh-back'>熱熱的 (miêu tả canh, cà phê...)</span><br><span class='pinyin-back'>rè rè de</span><span class='vi-back'>nóng hổi</span>" +
+       "<span class='zh-back'>大大的 (miêu tả ngôi nhà, quả bóng...)</span><br><span class='pinyin-back'>dà dà de</span><span class='vi-back'>to to</span>" +
+       "<span class='zh-back'>舊舊的 (miêu tả quyển sách, ngôi nhà cũ...)</span><br><span class='pinyin-back'>jiù jiù de</span><span class='vi-back'>cũ cũ</span>" +
+       "<span class='zh-back'>臭臭的 (miêu tả rác, đồ ăn ôi...)</span><br><span class='pinyin-back'>chòu chòu de</span><span class='vi-back'>hôi hôi, thối thối</span>" +
+       "<span class='zh-back'>我家對面的那座山上有個大大的房子。房子大大的，可是裡邊沒人。</span><br><span class='pinyin-back'>Wǒ jiā duìmiàn de nà zuò shān shàng yǒu gè dà dà de fángzi. Fángzi dà dà de, kěshì lǐbiān méi rén.</span><span class='vi-back'>Trên ngọn núi đối diện nhà tôi có một tòa nhà to to. Tòa nhà to to, nhưng bên trong lại không có ai.</span>" +
+       "<span class='zh-back'>那個高高的男人是我昨天在我們的辦公大樓前看到的人。</span><br><span class='pinyin-back'>Nà gè gāogāo de nánrén shì wǒ zuótiān zài wǒmen de bàngōng dàlóu qián kàn dào de rén.</span><span class='vi-back'>Người đàn ông cao cao kia là người tôi đã trông thấy trước tòa nhà văn phòng của chúng tôi hôm qua.</span>" +
+       "<span class='zh-back'>這碗麵辣辣的、香香的。太會做了！</span><br><span class='pinyin-back'>Zhè wǎn miàn làlà de, xiāngxiāng de. Tài huì zuò le!</span><span class='vi-back'>Bát mì này cay cay, thơm thơm. Nấu khéo quá!</span>" +
+       "<span class='zh-back'>他的愛人美美的。</span><br><span class='pinyin-back'>Tā de àiren měiměi de.</span><span class='vi-back'>Người yêu của anh ta xinh xinh.</span>" +
+       "<span class='zh-back'>冰箱裡的甜點是誰的？香香甜甜的，我要一块哦！</span><br><span class='pinyin-back'>Bīngxiāng lǐ de tiándiǎn shì shuí de? Xiāngxiāng tiántián de, wǒ yào yí kuài ó!</span><span class='vi-back'>Đồ ngọt trong tủ lạnh là của ai thế? Thơm thơm, ngòn ngọt, tôi xin một miếng nhé!</span>" +
+       "<span class='zh-back'>那邊桌子上的熱熱咖啡是買給誰的？我可以喝嗎？</span><br><span class='pinyin-back'>Nàbiān zhuōzi shàng de rère kāfēi shì mǎi gěi shuí de? Wǒ kěyǐ hē ma?</span><span class='vi-back'>Cà phê nong nóng trên cái bàn đằng kia là mua cho ai thế? Tôi có thể uống không?</span>" +
+       "</div>"
+  },
+  {
+    f: "<div class='zh-front'>QUẢ BẠN NÓI LÀ DƯA HẤU</div><div class='zh-front'>你說的水果<span class='hl-blue'>是</span>西瓜</div><div class='pinyin'>nǐ shuō de shuǐguǒ shì xīguā</div><div class='desc-front'>• Mẫu câu: <b>Phần bổ nghĩa + 的 + Danh từ</b><br>• Một cụm từ hoặc vế câu có thể đứng <b>đứng trước</b> danh từ để bổ nghĩa cho danh từ đó. Từ nối là chữ <span class='hl-red'>的</span>. TẤT CẢ các loại bổ nghĩa cho danh từ (danh từ, tính từ, động từ, vế câu) đều đứng TRƯỚC danh từ.<br>• Phần bổ nghĩa này sẽ làm rõ người hay vật nào, người hay vật gì, người hay vật thế nào.<br>• Khi cần phủ định phần bổ nghĩa, ta thêm <span class='hl-red'>不</span> hoặc <span class='hl-red'>沒</span> vào trước động từ.</div>",
+    b: "<div class='desc' style='line-height:1.6;'>" +
+       "<span class='zh-back'>你說的水果是西瓜。</span><br><span class='pinyin-back'>Nǐ shuō de shuǐguǒ shì xīguā.</span><span class='vi-back'>Quả bạn nói là dưa hấu.</span>" +
+       "<span class='zh-back'>他喝的茶是烏龍茶。</span><br><span class='pinyin-back'>Tā hē de chá shì wūlóngchá.</span><span class='vi-back'>Trà anh ấy uống là trà Ô Long.</span>" +
+       "<span class='zh-back'>這些是我拍的照片。</span><br><span class='pinyin-back'>Zhèxiē shì wǒ pāi de zhàopiàn.</span><span class='vi-back'>Đây là những tấm ảnh tôi chụp.</span>" +
+       "<span class='zh-back'>穿黃衣服的這個人是老闆。</span><br><span class='pinyin-back'>Chuān huáng yīfu de zhè gè rén shì lǎobǎn.</span><span class='vi-back'>Người mặc áo vàng này là ông chủ.</span>" +
+       "<span class='zh-back'>現在去那裡玩的人比較少。</span><br><span class='pinyin-back'>Xiànzài qù nàlǐ wán de rén bǐjiào shǎo.</span><span class='vi-back'>Người hiện tại đi chơi ở đó tương đối ít.</span>" +
+       "<span class='zh-back'>買這種手機的人很多。</span><br><span class='pinyin-back'>Mǎi zhè zhǒng shǒujī de rén hěn duō.</span><span class='vi-back'>Người mua loại điện thoại này rất nhiều.</span>" +
+       "<span class='zh-back'>不能上網的手機很不方便。</span><br><span class='pinyin-back'>Bù néng shàngwǎng de shǒujī hěn bù fāngbiàn.</span><span class='vi-back'>Điện thoại không thể lên mạng được rất bất tiện.</span>" +
+       "<span class='zh-back'>不去逛夜市的人可以去茶館喝茶。</span><br><span class='pinyin-back'>Bú qù guàng yèshì de rén kěyǐ qù cháguǎn hē chá.</span><span class='vi-back'>Người không đi chợ đêm có thể đến quán trà uống trà.</span>" +
+       "<span class='zh-back'>不來上課的同學不能去看籃球比賽。</span><br><span class='pinyin-back'>Bù lái shàngkè de tóngxué bù néng qù kàn lánqiú bǐsài.</span><span class='vi-back'>Bạn học không lên lớp không được đi xem thi đấu bóng rổ.</span>" +
+       "<span class='zh-back'>他朋友給他的那個包子很好吃。</span><br><span class='pinyin-back'>Tā péngyou gěi tā de nà gè bāozi hěn hǎochī.</span><span class='vi-back'>Cái bánh bao bạn anh ấy cho anh ấy rất ngon.</span>" +
+       "<span class='zh-back'>能上網的這支手機有一點貴。</span><br><span class='pinyin-back'>Néng shàngwǎng de zhè zhī shǒujī yǒu yīdiǎn guì.</span><span class='vi-back'>Điện thoại có thể lên mạng này hơi đắt.</span>" +
+       "<span class='vi-back' style='font-style: italic;'>Câu này cũng có thể nói thành: 這支能上網的手機有一點貴。</span><br><span class='pinyin-back'>Zhè zhī néng shàngwǎng de shǒujī yǒu yīdiǎn guì.</span><span class='vi-back' style='font-style: italic;'>Chiếc điện thoại có thể lên mạng này hơi đắt.</span>" +
+       "<span class='zh-back'>他做的這些甜點很香。</span><br><span class='pinyin-back'>Tā zuò de zhèxiē tiándiǎn hěn xiāng.</span><span class='vi-back'>Những món tráng miệng anh ấy làm này rất thơm.</span>" +
+       "<span class='zh-back'>他喝的那種茶我也喜歡喝。</span><br><span class='pinyin-back'>Tā hē de nà zhǒng chá wǒ yě xǐhuān hē.</span><span class='vi-back'>Loại trà anh ấy uống tôi cũng thích uống.</span>" +
+       "</div>"
+  },
+  {
+    f: "<div class='zh-front'>TÔI BIẾT CHƠI QUẦN VỢT RỒI</div><div class='zh-front'>我會打網球<span class='hl-blue'>了</span></div><div class='pinyin'>wǒ huì dǎ wǎngqiú le</div><div class='desc-front'>• Chữ <span class='hl-red'>了</span> đứng cuối câu để nói rằng: ĐÃ CÓ SỰ THAY ĐỔI so với trước đó. Có cái gì đó trước kia không như vậy, bây giờ đã khác.<br>• Mẫu câu khẳng định: <b>Câu khẳng định + 了 (cuối câu)</b><br>• Mẫu câu phủ định: <span style='color:#dc2626;font-weight:bold;'>不</span>/<span style='color:#dc2626;font-weight:bold;'>沒</span> + động từ/tính từ + ... + <span style='color:#dc2626;font-weight:bold;'>了嗎</span>?</b> (nghĩa là: không còn ... nữa)<br>• Mẫu câu hỏi: <b>Câu hỏi + <span style='color:#dc2626;font-weight:bold;'>不</span>/<span style='color:#dc2626;font-weight:bold;'>沒</span> <span style='color:#dc2626;font-weight:bold;'>了嗎</span>?</b> (dùng để hỏi xem đã có thay đổi gì chưa)</div>",
+    b: "<div class='desc' style='line-height:1.6;'>" +
+       "<span class='zh-back'>咖啡貴了。</span><br><span class='pinyin-back'>Kāfēi guì le.</span><span class='vi-back'>Cà phê đắt hơn rồi / Cà phê đã đắt lên. (Trước kia rẻ hơn, bây giờ đắt hơn.)</span>" +
+       "<span class='zh-back'>我會打網球了。</span><br><span class='pinyin-back'>Wǒ huì dǎ wǎngqiú le.</span><span class='vi-back'>Tôi biết chơi quần vợt rồi. (Trước kia không biết, bây giờ biết.)</span>" +
+       "<span class='zh-back'>現在有手機的人多了。</span><br><span class='pinyin-back'>Xiànzài yǒu shǒujī de rén duō le.</span><span class='vi-back'>Người có điện thoại bây giờ nhiều hơn rồi.</span>" +
+       "<span class='zh-back'>我現在喜歡吃越南麵了。</span><br><span class='pinyin-back'>Wǒ xiànzài xǐhuān chī Yuènán miàn le.</span><span class='vi-back'>Bây giờ tôi thích ăn mì Việt Nam rồi.</span>" +
+       "<span class='zh-back'>我媽媽不喝咖啡了。</span><br><span class='pinyin-back'>Wǒ māma bù hē kāfēi le.</span><span class='vi-back'>Mẹ tôi không uống cà phê nữa. (Trước kia uống, bây giờ không uống nữa.)</span>" +
+       "<span class='zh-back'>他不想買那支手機了。</span><br><span class='pinyin-back'>Tā bù xiǎng mǎi nà zhī shǒujī le.</span><span class='vi-back'>Anh ấy không muốn mua chiếc điện thoại đó nữa. (Lúc trước muốn, bây giờ không muốn nữa.)</span>" +
+       "<span class='zh-back'>我們不要去參觀故宮了。</span><br><span class='pinyin-back'>Wǒmen bú yào qù cānguān Gùgōng le.</span><span class='vi-back'>Chúng tôi không đi thăm Cố Cung nữa. (Trước kia có kế hoạch đi, bây giờ không đi nữa.)</span>" +
+       "<span class='zh-back'>你想吃午餐了嗎？</span><br><span class='pinyin-back'>Nǐ xiǎng chī wǔcān le ma?</span><span class='vi-back'>Bạn đã muốn ăn trưa chưa?</span>" +
+       "<span class='zh-back'>現在學中文的學生多了嗎？</span><br><span class='pinyin-back'>Xiànzài xué zhōngwén de xuésheng duō le ma?</span><span class='vi-back'>Bây giờ học sinh học tiếng Trung có nhiều hơn chưa?</span>" +
+       "<span class='zh-back'>你們不去臺東了嗎？</span><br><span class='pinyin-back'>Nǐmen bú qù Táidōng le ma?</span><span class='vi-back'>Các bạn không đi Đài Đông nữa à?</span>" +
+       "<span class='zh-back'>我家現在很乾淨了。</span><br><span class='pinyin-back'>Wǒ jiā xiànzài hěn gānjìng le.</span><span class='vi-back'>Nhà tôi bây giờ sạch sẽ rồi.</span>" +
+       "<span class='zh-back'>車票貴了。</span><br><span class='pinyin-back'>Chēpiào guì le.</span><span class='vi-back'>Vé xe đắt rồi.</span>" +
+       "<span class='zh-back'>這個學生想學中文了。</span><br><span class='pinyin-back'>Zhè gè xuésheng xiǎng xué zhōngwén le.</span><span class='vi-back'>Học sinh này đã muốn học tiếng Trung rồi.</span>" +
+       "<span class='zh-back'>這個先生不抽煙了 / 這個先生戒煙了。</span><br><span class='pinyin-back'>Zhè gè xiānsheng bù chōuyān le / zhè gè xiānsheng jièyān le.</span><span class='vi-back'>Người đàn ông này không hút thuốc nữa (đã bỏ thuốc rồi).</span>" +
+       "</div>"
+  },
+  {
+    f: "<div class='zh-front'>VÌ TÔI KHÔNG BIẾT NẤU NƯỚNG<br>NÊN THƯỜNG ĐI ĂN HÀNG</div><div class='zh-front'><span class='hl-blue'>因為</span>我不會做飯，<span class='hl-blue'>所以</span>常去餐廳吃飯</div><div class='pinyin'> yīnwèi wǒ bú huì zuòfàn, suǒyǐ cháng qù cāntīng chīfàn</div><div class='desc-front'>• Mẫu câu: <b>因為 + nguyên nhân + 所以 + kết quả</b><br>• <span class='hl-red'>因為</span> (bởi vì) đứng trước nguyên nhân, <span class='hl-red'>所以</span> (cho nên) đứng trước kết quả. Hai từ này thường đi cặp với nhau trong cùng một câu.</div>",
+    b: "<div class='desc' style='line-height:1.6;'>" +
+       "<span class='zh-back'>因為現在去玩的人比較少，所以旅館不太貴。</span><br><span class='pinyin-back'>Yīnwèi xiànzài qù wán de rén bǐjiào shǎo, suǒyǐ lǚguǎn bú tài guì.</span><span class='vi-back'>Bởi vì hiện tại người đi chơi tương đối ít, cho nên khách sạn không quá đắt.</span>" +
+       "<span class='zh-back'>因為火車太慢了，所以我想坐高鐵。</span><br><span class='pinyin-back'>Yīnwèi huǒchē tài màn le, suǒyǐ wǒ xiǎng zuò gāotiě.</span><span class='vi-back'>Bởi vì tàu hỏa quá chậm, cho nên tôi muốn ngồi tàu cao tốc.</span>" +
+       "<span class='zh-back'>因為我不知道在哪裡買票，所以想請你帮我買。</span><br><span class='pinyin-back'>Yīnwèi wǒ bù zhīdào zài nǎlǐ mǎi piào, suǒyǐ xiǎng qǐng nǐ bāng wǒ mǎi.</span><span class='vi-back'>Bởi vì tôi không biết mua vé ở đâu, cho nên muốn nhờ bạn mua giúp.</span>" +
+       "<span class='zh-back'>因為我很喜歡中國古代的東西，所以去參觀故宮。</span><br><span class='pinyin-back'>Yīnwèi wǒ hěn xǐhuān Zhōngguó gǔdài de dōngxī, suǒyǐ qù cānguān Gùgōng.</span><span class='vi-back'>Bởi vì tôi rất thích đồ cổ Trung Quốc, cho nên tôi đi thăm Cố Cung.</span>" +
+       "<span class='zh-back'>因為那支手機不能照相，所以我不想買。</span><br><span class='pinyin-back'>Yīnwèi nà zhī shǒujī bù néng zhàoxiàng, suǒyǐ wǒ bù xiǎng mǎi.</span><span class='vi-back'>Bởi vì chiếc điện thoại đó không chụp ảnh được, cho nên tôi không muốn mua.</span>" +
+       "<span class='zh-back'>因為我聽說是花蓮的風景很美，所以一定要去看看。</span><br><span class='pinyin-back'>Yīnwèi wǒ tīngshuō Huālián de fēngjǐng hěn měi, suǒyǐ yídìng yào qù kàn kan.</span><span class='vi-back'>Bởi vì tôi nghe nói phong cảnh Hoa Liên rất đẹp, cho nên nhất định phải đi xem thử.</span>" +
+       "<span class='zh-back'>因為我剛開始學中文，所以我的中文說得不好。</span><br><span class='pinyin-back'>Yīnwèi wǒ gāng kāishǐ xué zhōngwén, suǒyǐ wǒ de zhōngwén shuō de bù hǎo.</span><span class='vi-back'>Bởi vì tôi mới bắt đầu học tiếng Trung, cho nên tiếng Trung của tôi nói không tốt.</span>" +
+       "</div>"
+  }
+];
+
+let idx = 0;
+function render() {
+  document.getElementById('frontFace').innerHTML = cards[idx].f;
+  document.getElementById('backFace').innerHTML = cards[idx].b;
+  document.getElementById('progress').innerText = `Thẻ ${idx + 1} / ${cards.length}`;
+}
+function flipCard() { document.getElementById('card').classList.toggle('flipped'); }
+function nextCard() { idx = (idx + 1) % cards.length; document.getElementById('card').classList.remove('flipped'); render(); }
+function prevCard() { idx = (idx - 1 + cards.length) % cards.length; document.getElementById('card').classList.remove('flipped'); render(); }
+
+document.addEventListener('keydown', function(event) {
+  if (event.key === 'ArrowRight' || event.key === 'ArrowDown') {
+    nextCard();
+    event.preventDefault();
+  } else if (event.key === 'ArrowLeft' || event.key === 'ArrowUp') {
+    prevCard();
+    event.preventDefault();
+  } else if (event.key === ' ' || event.key === 'Enter') {
+    flipCard();
+    event.preventDefault();
+  }
+});
+
+render();
+</script>
+</body>
+</html>

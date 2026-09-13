@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BÀI 10 - BÀI KHÓA</title>
+<style>
+*{box-sizing:border-box}
+body{
+  margin:0; min-height:100vh; font-family:Arial,"Microsoft YaHei",sans-serif;
+  background:linear-gradient(135deg,#eef4ff,#f9fbff);
+  display:flex; justify-content:center; color:#202124;
+}
+.app{width:min(900px,96vw); padding:20px 0 30px}
+h1{text-align:center;margin:0 0 6px;font-size:32px}
+.subtitle{text-align:center;color:#666;margin-bottom:14px;font-size:18px}
+.progress{text-align:center;font-size:18px;color:#666;margin-bottom:12px}
+.card-wrap{perspective:1200px; cursor:pointer}
+.card{
+  width:100%; height:750px; position:relative; transform-style:preserve-3d;
+  transition:transform .55s ease;
+}
+.card.flipped{transform:rotateY(180deg)}
+.face{
+  position:absolute; inset:0; backface-visibility:hidden; -webkit-backface-visibility:hidden;
+  border-radius:24px; background:white; box-shadow:0 12px 35px rgba(30,60,100,.15);
+  display:flex; flex-direction:column; justify-content:space-between;
+  padding:32px 36px; border:1px solid #e6eaf0; overflow:hidden;
+}
+.back{transform:rotateY(180deg)}
+
+.card-content {
+  flex: 1;
+  overflow-y: auto;
+  padding-right: 8px;
+}
+
+.context-title {
+  font-weight: bold;
+  margin-bottom: 20px;
+  font-size: 22px;
+  color: #2c3e50;
+  line-height: 1.5;
+  border-bottom: 2px solid #edf2f7;
+  padding-bottom: 12px;
+}
+.dialogue-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.dialogue-table td {
+  vertical-align: top;
+  padding: 10px 0;
+}
+.speaker-col {
+  width: 140px;
+  color: #000000;
+  font-weight: bold;
+  font-size: 24px;
+  white-space: nowrap;
+}
+.speaker-col-front {
+  width: 140px;
+  color: #718096;
+  font-weight: bold;
+  font-size: 40.5px;
+  white-space: nowrap;
+}
+.speech-col {
+  color: #e53e3e;
+  font-weight: bold;
+  font-size: 40.5px;
+  line-height: 1.5;
+}
+.speech-col-back {
+  color: #e53e3e;
+  font-weight: bold;
+  font-size: 27px;
+  line-height: 1.5;
+}
+.pinyin-block {
+  color: #718096;
+  font-weight: bold;
+  font-size: 22px;
+  margin-top: 4px;
+  margin-bottom: 4px;
+  display: block;
+}
+.meaning-text {
+  font-size: 21px;
+  color: #4b5563;
+  font-weight: normal;
+  margin-top: 4px;
+}
+
+.audio-btn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-size: 22px;
+  margin-left: 8px;
+  padding: 2px 8px;
+  border-radius: 50%;
+  transition: background-color 0.2s;
+  vertical-align: middle;
+}
+.audio-btn:hover {
+  background-color: #edf2f7;
+}
+
+.hint{color:#888; font-size:18px; text-align:center; margin-top:14px}
+.controls{display:flex;gap:16px;justify-content:center;margin-top:22px}
+button{
+  border:0;border-radius:14px;padding:16px 26px;font-size:20px;
+  cursor:pointer;background:#e9eef7;color:#233044;
+}
+button.primary{background:#2563eb;color:white}
+button:hover{filter:brightness(.97)}
+.extra{display:flex;justify-content:center;gap:10px;margin-top:14px}
+.shuffle{background:#e9f8ef}
+
+@media(max-width:600px){
+ .app{padding-top:16px}.card{height:780px}
+ .face{padding:22px 20px}
+ .context-title{font-size:18px; margin-bottom:14px}
+ .speaker-col{width:100px; font-size:18px}
+ .speaker-col-front{width:100px; font-size:30px}
+ .speech-col{font-size:30px}
+ .speech-col-back{font-size:20px}
+ .pinyin-block{font-size:17px;}
+ .meaning-text{font-size:16px}
+ .controls button{padding:12px 16px; font-size:16px}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <h1>🇨🇳 BÀI 10 - BÀI KHÓA</h1>
+
+  <div class="progress" id="progress"></div>
+
+  <div class="card-wrap" id="cardWrap" onclick="flipCard()">
+    <div class="card" id="card">
+      <div class="face front">
+        <div class="card-content" id="frontContent"></div>
+        <div class="hint">👆 Chạm để lật thẻ</div>
+      </div>
+      <div class="face back">
+        <div class="card-content" id="backContent"></div>
+        <div class="hint">👆 Chạm để lật về mặt trước</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="controls">
+    <button onclick="event.stopPropagation();prevCard()">← Trước</button>
+    <button class="primary" onclick="event.stopPropagation();flipCard()">Lật thẻ</button>
+    <button onclick="event.stopPropagation();nextCard()">Tiếp →</button>
+  </div>
+  <div class="extra">
+    <button class="shuffle" onclick="event.stopPropagation();shuffleCards()">🔀 Trộn thẻ</button>
+  </div>
+</div>
+
+<script>
+const originalCards = [
+  {
+    "frontContext": "BÀI KHÓA 1: Như Ngọc (Rúyù) và Nguyệt Mỹ (Yuèměi) nói chuyện về các loại hoa quả",
+    "frontLines": [
+      { "speaker": "如玉:", "speech": "這個黃色的水果叫什麼？" },
+      { "speaker": "月美:", "speech": "芒果。給你一塊，吃吃看。" },
+      { "speaker": "如玉:", "speech": "好，謝謝。香香的、甜甜的，很好吃。" },
+      { "speaker": "月美:", "speech": "昨天明華給我們的那種水果，紅色的，叫什麼？" },
+      { "speaker": "如玉:", "speech": "你說的是西瓜吧？" },
+      { "speaker": "月美:", "speech": "對！對！對！臺灣有很多好吃的水果。" },
+      { "speaker": "如玉:", "speech": "我以前不喜歡吃水果，現在很喜歡了。" },
+      { "speaker": "月美:", "speech": "越南的水果也很好吃。" },
+      { "speaker": "如玉:", "speech": "要是有機會，我想吃吃看。" },
+      { "speaker": "月美:", "speech": "你來越南，我一定請你吃。" }
+    ],
+    "backLines": [
+      { "speaker": "如玉:", "speech": "這個黃色的水果叫什麼？", "pinyin": "Zhè ge huángsè de shuǐguǒ jiào shénme?", "meaning": "Quả cây màu vàng này tên là gì?" },
+      { "speaker": "月美:", "speech": "芒果。給你一塊，吃吃看。", "pinyin": "Mángguǒ. Gěi nǐ yí kuài, chīchīkàn.", "meaning": "Xoài. Cho bạn một miếng, ăn thử xem." },
+      { "speaker": "如玉:", "speech": "好，謝謝。香香的、甜甜的，很好吃。", "pinyin": "Hǎo, xièxie. Xiāngxiāng de, tiántián de, hěn hǎochī.", "meaning": "Được, cảm ơn. Thơm thơm, ngọt ngọt, rất ngon." },
+      { "speaker": "月美:", "speech": "昨天明華給我們的那種水果，紅色的，叫什麼？", "pinyin": "Zuótiān Mínghuá gěi wǒmen de nà zhǒng shuǐguǒ, hóngsè de, jiào shénme?", "meaning": "Loại quả mà hôm qua Minh Hoa cho chúng ta, màu đỏ ấy, tên là gì?" },
+      { "speaker": "如玉:", "speech": "你說的是西瓜吧？", "pinyin": "Nǐ shuō de shì xīguā ba?", "meaning": "Có phải bạn nói là dưa hấu không?" },
+      { "speaker": "月美:", "speech": "對！對！對！臺灣有很多好吃的水果。", "pinyin": "Duì! Duì! Duì! Táiwān yǒu hěn duō hǎochī de shuǐguǒ.", "meaning": "Đúng! Đúng! Đúng! Đài Loan có rất nhiều trái cây ngon." },
+      { "speaker": "如玉:", "speech": "我以前不喜歡吃水果，現在很喜歡了。", "pinyin": "Wǒ yǐqián bù xǐhuān chī shuǐguǒ, xiànzài hěn xǐhuān le.", "meaning": "Trước đây tôi không thích ăn trái cây, bây giờ rất thích rồi." },
+      { "speaker": "月美:", "speech": "越南的水果也很好吃。", "pinyin": "Yuènán de shuǐguǒ yě hěn hǎochī.", "meaning": "Trái cây ở Việt Nam cũng rất ngon." },
+      { "speaker": "如玉:", "speech": "要是有機會，我想吃吃看。", "pinyin": "Yàoshì yǒu jīhuì, wǒ xiǎng chīchīkàn.", "meaning": "Nếu có cơ hội, tôi muốn ăn thử xem." },
+      { "speaker": "月美:", "speech": "你來越南，我一定請你吃。", "pinyin": "Nǐ lái Yuènán, wǒ yídìng qǐng nǐ chī.", "meaning": "Bạn đến Việt Nam, tôi nhất định sẽ mời bạn ăn." }
+    ]
+  },
+  {
+    "frontContext": "BÀI KHÓA 2: Minh Hoa (Mínghuá) và Tanaka (Tiánzhōng) xem ảnh đi chơi Hoa Liên",
+    "frontLines": [
+      { "speaker": "明華:", "speech": "你跟你女朋友上個月去花蓮玩，好玩嗎？" },
+      { "speaker": "田中:", "speech": "很好玩。你看，這些是我拍的照片。" },
+      { "speaker": "明華:", "speech": "你們笑得很開心！哪一個是你女朋友？" },
+      { "speaker": "田中:", "speech": "穿紅衣服的這個。穿黃衣服的是旅館老闆的太太。" },
+      { "speaker": "明華:", "speech": "她們兩個都很漂亮。這兩個男的是誰？" },
+      { "speaker": "田中:", "speech": "矮的是旅館的老闆，高的是他弟弟。" },
+      { "speaker": "明華:", "speech": "那家旅館怎麼樣？" },
+      { "speaker": "田中:", "speech": "很乾淨。從窗戶往外看，是藍色的大海。" },
+      { "speaker": "明華:", "speech": "真不錯！那家旅館貴嗎？" },
+      { "speaker": "田中:", "speech": "因為現在去玩的人比較少，所以旅館不太貴。" },
+      { "speaker": "明華:", "speech": "下次我也想去住。" }
+    ],
+    "backLines": [
+      { "speaker": "明華:", "speech": "你跟你女朋友上個月去花蓮玩，好玩嗎？", "pinyin": "Nǐ gēn nǐ nǚ péngyǒu shàng ge yuè qù Huālián wán, hǎowán ma?", "meaning": "Tháng trước bạn và bạn gái đi chơi Hoa Liên, có vui không?" },
+      { "speaker": "田中:", "speech": "很好玩。你看，這些是我拍的照片。", "pinyin": "Hěn hǎowán. Nǐ kàn, zhèxiē shì wǒ pāi de zhàopiàn.", "meaning": "Rất vui. Bạn xem, đây là những tấm ảnh tôi chụp." },
+      { "speaker": "明華:", "speech": "你們笑得很開心！哪一個是你女朋友？", "pinyin": "Nǐmen xiào de hěn kāixīn! Nǎ yí ge shì nǐ nǚ péngyǒu?", "meaning": "Các bạn cười rất vui vẻ! Người nào là bạn gái của bạn?" },
+      { "speaker": "田中:", "speech": "穿紅衣服的這個。穿黃衣服的是旅館老闆的太太。", "pinyin": "Chuān hóng yīfú de zhè ge. Chuān huáng yīfú de shì lǚguǎn lǎobǎn de tàitai.", "meaning": "Người mặc áo đỏ này. Người mặc áo vàng là vợ của ông chủ khách sạn." },
+      { "speaker": "明華:", "speech": "她們兩個都很漂亮。這兩個男的是誰？", "pinyin": "Tāmen liǎng ge dōu hěn piàoliàng. Zhè liǎng ge nán de shì shéi?", "meaning": "Hai cô ấy đều rất đẹp. Hai người đàn ông này là ai?" },
+      { "speaker": "田中:", "speech": "矮的是旅館的老闆，高的是他弟弟。", "pinyin": "Ǎi de shì lǚguǎn de lǎobǎn, gāo de shì tā dìdi.", "meaning": "Người thấp là ông chủ khách sạn, người cao là em trai của ông ấy." },
+      { "speaker": "明華:", "speech": "那家旅館怎麼樣？", "pinyin": "Nà jiā lǚguǎn zěnmeyàng?", "meaning": "Khách sạn đó thế nào?" },
+      { "speaker": "田中:", "speech": "很乾淨。從窗戶往外看，是藍色的大海。", "pinyin": "Hěn gānjìng. Cóng chuānghù wǎng wài kàn, shì lánsè de dàhǎi.", "meaning": "Rất sạch sẽ. Nhìn ra ngoài cửa sổ, là biển xanh." },
+      { "speaker": "明華:", "speech": "真不錯！那家旅館貴嗎？", "pinyin": "Zhēn búcuò! Nà jiā lǚguǎn guì ma?", "meaning": "Thật là tuyệt! Khách sạn đó có đắt không?" },
+      { "speaker": "田中:", "speech": "因為現在去玩的人比較少，所以旅館不太貴。", "pinyin": "Yīnwèi xiànzài qù wán de rén bǐjiào shǎo, suǒyǐ lǚguǎn bú tài guì.", "meaning": "Bởi vì hiện tại số người đi chơi tương đối ít, cho nên khách sạn không quá đắt." },
+      { "speaker": "明華:", "speech": "下次我也想去住。", "pinyin": "Xià cì wǒ yě xiǎng qù zhù.", "meaning": "Lần sau tôi cũng muốn đến ở." }
+    ]
+  }
+];
+
+let cards = [...originalCards];
+let index = 0;
+let flipped = false;
+
+function speakText(event, text) {
+  event.stopPropagation();
+  if ('speechSynthesis' in window) {
+    window.speechSynthesis.cancel();
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = 'zh-CN';
+    utterance.rate = 0.9;
+    window.speechSynthesis.speak(utterance);
+  } else {
+    alert('Trình duyệt của bạn không hỗ trợ tính năng phát âm.');
+  }
+}
+
+function render(){
+  const c = cards[index];
+  
+  let frontHtml = `<div class="context-title">${c.frontContext}</div><table class="dialogue-table">`;
+  c.frontLines.forEach(line => {
+    frontHtml += `
+      <tr>
+        <td class="speaker-col-front">${line.speaker}</td>
+        <td class="speech-col">
+          ${line.speech}
+          <button class="audio-btn" onclick="speakText(event, '${line.speech.replace(/'/g, "\\'")}')" title="Nghe phát âm">🔊</button>
+        </td>
+      </tr>`;
+  });
+  frontHtml += `</table>`;
+  document.getElementById('frontContent').innerHTML = frontHtml;
+
+  let backHtml = `<div class="context-title">${c.frontContext}</div><table class="dialogue-table">`;
+  c.backLines.forEach(line => {
+    backHtml += `
+      <tr>
+        <td class="speaker-col">${line.speaker}</td>
+        <td class="speech-col-back">
+          ${line.speech}
+          <button class="audio-btn" onclick="speakText(event, '${line.speech.replace(/'/g, "\\'")}')" title="Nghe phát âm">🔊</button>
+          <div class="pinyin-block">${line.pinyin}</div>
+          <div class="meaning-text">${line.meaning}</div>
+        </td>
+      </tr>`;
+  });
+  backHtml += `</table>`;
+  document.getElementById('backContent').innerHTML = backHtml;
+
+  document.getElementById('progress').textContent = `Thẻ ${index+1} / ${cards.length}`;
+  document.getElementById('card').classList.toggle('flipped', flipped);
+}
+
+function flipCard(){
+  flipped = !flipped;
+  document.getElementById('card').classList.toggle('flipped', flipped);
+}
+
+function nextCard(){
+  index = (index + 1) % cards.length;
+  flipped = false; render();
+}
+
+function prevCard(){
+  index = (index - 1 + cards.length) % cards.length;
+  flipped = false; render();
+}
+
+function shuffleCards(){
+  for(let i=cards.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    [cards[i],cards[j]]=[cards[j],cards[i]];
+  }
+  index=0; flipped=false; render();
+}
+
+document.addEventListener('keydown',e=>{
+  if(e.key==='ArrowRight') nextCard();
+  else if(e.key==='ArrowLeft') prevCard();
+  else if(e.key===' '){e.preventDefault();flipCard();}
+});
+
+render();
+</script>
+</body>
+</html>
